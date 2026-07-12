@@ -99,7 +99,7 @@ function App() {
         <p className="text-xs text-gray-600">
           Hotkey:{" "}
           <kbd className="px-1.5 py-0.5 bg-gray-800 rounded text-gray-400 font-mono text-[10px] border border-gray-700">
-            Ctrl+Alt+D
+            Ctrl+Shift+F12
           </kbd>
         </p>
       </div>
