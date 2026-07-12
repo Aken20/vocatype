@@ -95,14 +95,18 @@ class HotkeyManager:
 
         # Register Win+Shift+V
         modifiers = win32con.MOD_WIN | win32con.MOD_SHIFT
-        if win32gui.RegisterHotKey(self._hwnd, HK_TOGGLE_DICTATION, modifiers, ord("V")):
-            self._registered = True
-            logger.info("Hotkey registered: Win+Shift+V")
-        else:
-            logger.error(
-                "Failed to register Win+Shift+V — it may be in use by another app. "
-                "Try changing the hotkey in config.py"
-            )
+        try:
+            if win32gui.RegisterHotKey(self._hwnd, HK_TOGGLE_DICTATION, modifiers, ord("V")):
+                self._registered = True
+                logger.info("Hotkey registered: Win+Shift+V")
+            else:
+                logger.error(
+                    "Failed to register Win+Shift+V — it may be in use by another app. "
+                    "Try changing the hotkey in config.py"
+                )
+                self._registered = False
+        except Exception as e:
+            logger.error("Hotkey registration failed: %s (another instance may be running)", e)
             self._registered = False
 
         # Message loop
