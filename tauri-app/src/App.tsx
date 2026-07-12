@@ -18,12 +18,6 @@ function App() {
       .catch(() => {});
   }, []);
 
-  const togglePill = useCallback(async () => {
-    try {
-      await fetch("http://127.0.0.1:9877/api/pill/toggle", { method: "POST" });
-    } catch { /* backend not running */ }
-  }, []);
-
   const toggleDictation = useCallback(async () => {
     if (isRecording) {
       sendAction("stop");
@@ -38,13 +32,6 @@ function App() {
       <div className="flex items-center gap-3">
         <span className="text-2xl">🎙️</span>
         <h1 className="text-xl font-bold tracking-tight flex-1">WhisperType</h1>
-        <button
-          onClick={togglePill}
-          className="text-xs px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
-          title="Toggle overlay pill"
-        >
-          📌 Pill
-        </button>
         <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 font-mono">
           v0.1
         </span>
@@ -124,8 +111,8 @@ function App() {
           }`}
         >
           <span
-            className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-              llmEnabled ? "translate-x-4" : "translate-x-0.5"
+            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+              llmEnabled ? "translate-x-[18px]" : "translate-x-0"
             }`}
           />
         </button>
