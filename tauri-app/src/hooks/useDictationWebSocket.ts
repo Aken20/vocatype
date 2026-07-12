@@ -6,7 +6,6 @@ const WS_URL = "ws://127.0.0.1:9877/api/ws";
 export function useDictationWebSocket() {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeout = useRef<number | null>(null);
-  const store = useDictationStore();
 
   const sendAction = useCallback((action: string) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -25,17 +24,18 @@ export function useDictationWebSocket() {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        const s = useDictationStore.getState();
         switch (data.type) {
           case "status":
-            store.setRecording(data.isRecording ?? false);
-            if (data.lastText) store.setLastTranscription(data.lastText);
-            if (data.state) store.setStatus(data.state);
+            if (data.isRecording !== undefined) s.setRecording(data.isRecording);
+            if (data.lastText) s.setLastTranscription(data.lastText);
+            if (data.state) s.setStatus(data.state);
             break;
           case "health":
-            store.setLmStudioAvailable(data.lmStudioAvailable ?? false);
+            s.setLmStudioAvailable(data.lmStudioAvailable ?? false);
             break;
         }
-      } catch {}
+      } catch { /* ignore parse errors */ }
     };
 
     ws.onclose = () => {
@@ -43,7 +43,7 @@ export function useDictationWebSocket() {
     };
 
     ws.onerror = () => ws.close();
-  }, [store]);
+  }, []); // stable — uses getState(), doesn't depend on store ref
 
   useEffect(() => {
     connect();

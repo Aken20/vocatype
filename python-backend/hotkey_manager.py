@@ -35,7 +35,7 @@ class KBDLLHOOKSTRUCT(ctypes.Structure):
 
 # Callback type
 LowLevelKeyboardProc = ctypes.WINFUNCTYPE(
-    ctypes.c_long, ctypes.c_int, wintypes.WPARAM, ctypes.POINTER(KBDLLHOOKSTRUCT)
+    ctypes.c_ssize_t, ctypes.c_int, wintypes.WPARAM, ctypes.POINTER(KBDLLHOOKSTRUCT)
 )
 
 # Windows DLLs

@@ -76,8 +76,9 @@ class DictationOrchestrator:
             return ""
 
         try:
-            # 1. Transcribe with Whisper
-            raw_text = transcribe_audio(audio_samples)
+            # 1. Transcribe with Whisper (CPU-bound — run in thread)
+            import asyncio as _asyncio
+            raw_text = await _asyncio.to_thread(transcribe_audio, audio_samples)
 
             if not raw_text.strip():
                 logger.info("Transcription returned empty text")
