@@ -2,25 +2,21 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from pill_overlay import toggle_pill, pill
+from pill_overlay import toggle_pill, stop_pill, start_pill
 
 router = APIRouter(prefix="/api/pill", tags=["pill"])
 
 
 class PillResponse(BaseModel):
     status: str
-    running: bool
-
 
 @router.post("/toggle", response_model=PillResponse)
 async def toggle():
     result = toggle_pill()
-    return PillResponse(status=result, running=pill.is_running)
-
+    return PillResponse(status=result)
 
 @router.get("/status", response_model=PillResponse)
 async def status():
-    return PillResponse(
-        status="running" if pill.is_running else "stopped",
-        running=pill.is_running,
-    )
+    from pill_overlay import _pill
+    running = _pill is not None and _pill.is_running
+    return PillResponse(status="running" if running else "stopped")
