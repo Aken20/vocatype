@@ -3,6 +3,7 @@
 Press Ctrl+Shift+V to dictate. Audio flows through:
   WASAPI mic → faster-whisper (small) → optional LM Studio cleanup → clipboard paste
 """
+import asyncio
 import logging
 import sys
 
