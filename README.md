@@ -2,7 +2,7 @@
 
 > **Press a hotkey. Speak. Your words appear anywhere. 100% local.**
 
-WhisperType is a fully-local Windows voice dictation app inspired by [Voquill](https://github.com/voquill/voquill). Press `Ctrl+Shift+V`, speak naturally, and your words appear in any text field — cleaned up by a local AI.
+WhisperType is a fully-local Windows voice dictation app inspired by [Voquill](https://github.com/voquill/voquill). Press `Win+Shift+V`, speak naturally, and your words appear in any text field — cleaned up by a local AI.
 
 ## ✨ Features
 
@@ -17,7 +17,7 @@ WhisperType is a fully-local Windows voice dictation app inspired by [Voquill](h
 ## 🏗️ Architecture
 
 ```
-Ctrl+Shift+V → WASAPI mic → faster-whisper (small) → Llama-3.2-3B → clipboard paste
+Win+Shift+V → WASAPI mic → faster-whisper (small) → Llama-3.2-3B → clipboard paste
                               ↑ Python sidecar          ↑ LM Studio
                               localhost:9877            localhost:1234
 
@@ -65,7 +65,7 @@ npm install
 npm run tauri dev
 ```
 
-Press `Ctrl+Shift+V` to start dictating!
+Press `Win+Shift+V` to start dictating!
 
 ## 🧠 AI Cleanup (Optional)
 

@@ -21,7 +21,7 @@ MODELS_DIR.mkdir(exist_ok=True)
 DB_PATH = BASE_DIR / "whispertype.db"
 
 # Hotkey
-HOTKEY_MODIFIERS = os.getenv("WHISPERTYPE_HOTKEY_MODIFIERS", "ctrl+shift")
+HOTKEY_MODIFIERS = os.getenv("WHISPERTYPE_HOTKEY_MODIFIERS", "win+shift")
 HOTKEY_KEY = os.getenv("WHISPERTYPE_HOTKEY_KEY", "v")
 
 # Audio

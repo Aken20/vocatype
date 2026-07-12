@@ -96,7 +96,7 @@ function App() {
         <p className="text-sm text-gray-500 text-center">
           Press{" "}
           <kbd className="px-2 py-0.5 bg-gray-800 rounded text-gray-300 font-mono text-xs border border-gray-700">
-            Ctrl+Shift+V
+            Win+Shift+V
           </kbd>{" "}
           to start/stop dictation
         </p>

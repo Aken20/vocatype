@@ -1,6 +1,6 @@
 """Global hotkey registration using pywin32.
 
-Registers Ctrl+Shift+V as a system-wide hotkey. When pressed,
+Registers Win+Shift+V as a system-wide hotkey. When pressed,
 it toggles dictation on/off — even when WhisperType is in the background.
 """
 import ctypes
@@ -56,7 +56,7 @@ class HotkeyManager:
         self._running = True
         self._thread = threading.Thread(target=self._message_loop, daemon=True, name="hotkey-thread")
         self._thread.start()
-        logger.info("Hotkey listener started (Ctrl+Shift+V)")
+        logger.info("Hotkey listener started (Win+Shift+V)")
 
     def stop(self):
         """Stop listening and clean up Windows resources."""
@@ -93,14 +93,14 @@ class HotkeyManager:
             None,
         )
 
-        # Register Ctrl+Shift+V
-        modifiers = win32con.MOD_CONTROL | win32con.MOD_SHIFT
+        # Register Win+Shift+V
+        modifiers = win32con.MOD_WIN | win32con.MOD_SHIFT
         if win32gui.RegisterHotKey(self._hwnd, HK_TOGGLE_DICTATION, modifiers, ord("V")):
             self._registered = True
-            logger.info("Hotkey registered: Ctrl+Shift+V")
+            logger.info("Hotkey registered: Win+Shift+V")
         else:
             logger.error(
-                "Failed to register Ctrl+Shift+V — it may be in use by another app. "
+                "Failed to register Win+Shift+V — it may be in use by another app. "
                 "Try changing the hotkey in config.py"
             )
             self._registered = False
