@@ -17,9 +17,7 @@ dist/
 *.egg
 
 # Whisper models (large files — downloaded at runtime)
-models/*.bin
-models/*.pt
-models/*.onnx
+models/
 
 # Environment
 .env
