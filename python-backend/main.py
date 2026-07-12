@@ -35,8 +35,12 @@ app.add_middleware(
 
 # Register API routes
 from routes.transcription import router as transcription_router
+from routes.audio import router as audio_router
+from routes.dictation import router as dictation_router
 
 app.include_router(transcription_router)
+app.include_router(audio_router)
+app.include_router(dictation_router)
 
 
 @app.get("/api/health")
@@ -99,13 +103,42 @@ async def startup():
     """Initialize the backend on startup."""
     logger.info("=" * 50)
     logger.info("🎙️  WhisperType Backend v0.1.0")
-    logger.info("   Model: %s | Device: %s", WHISPER_MODEL, "CPU")
+    logger.info("   Model: %s | Device: CPU", WHISPER_MODEL)
     logger.info("   Server: http://%s:%d", HOST, PORT)
-    logger.info("   WebSocket: ws://%s:%d/api/ws", HOST, PORT)
+    logger.info("   Hotkey: Ctrl+Shift+V")
     logger.info("=" * 50)
 
+    # Give the orchestrator access to WebSocket clients
+    from orchestrator import orchestrator
+
+    orchestrator.set_ws_clients(_ws_clients)
+
+    # Start global hotkey listener (Ctrl+Shift+V → toggle dictation)
+    from hotkey_manager import HotkeyManager
+
+    hotkey_mgr = HotkeyManager()
+
+    def on_hotkey():
+        """Called when Ctrl+Shift+V is pressed."""
+        if orchestrator.is_dictating:
+            # Stop recording — transcription happens in the background
+            asyncio.run_coroutine_threadsafe(
+                orchestrator.stop_dictation(),
+                asyncio.get_event_loop() if hasattr(asyncio, 'get_event_loop') else None
+            )
+        else:
+            asyncio.run_coroutine_threadsafe(
+                orchestrator.start_dictation(),
+                asyncio.get_event_loop() if hasattr(asyncio, 'get_event_loop') else None
+            )
+
+    hotkey_mgr.start(on_hotkey)
+
+    # Store for shutdown
+    app.state.hotkey_manager = hotkey_mgr
+    app.state.orchestrator = orchestrator
+
     # Pre-load the Whisper model in the background
-    import asyncio
     from transcriber import get_model
 
     async def load_model():
@@ -125,6 +158,10 @@ async def shutdown():
     from transcriber import unload_model
 
     unload_model()
+
+    if hasattr(app.state, "hotkey_manager"):
+        app.state.hotkey_manager.stop()
+
     logger.info("WhisperType backend shut down")
 
 
