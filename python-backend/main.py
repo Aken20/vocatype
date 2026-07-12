@@ -151,21 +151,21 @@ async def startup():
 
     # Start global hotkey listener (Ctrl+Alt+D → toggle dictation)
     from hotkey_manager import HotkeyManager
+    import urllib.request
+
+    API_BASE = f"http://{HOST}:{PORT}"
 
     hotkey_mgr = HotkeyManager()
 
     def on_hotkey():
-        """Called when Ctrl+Alt+D is pressed."""
+        """Called when Ctrl+Alt+D is pressed — uses REST API to avoid asyncio thread issues."""
         if orchestrator.is_dictating:
-            # Stop recording — transcription happens in the background
-            asyncio.run_coroutine_threadsafe(
-                orchestrator.stop_dictation(),
-                asyncio.get_event_loop() if hasattr(asyncio, 'get_event_loop') else None
+            urllib.request.urlopen(
+                urllib.request.Request(f"{API_BASE}/api/dictation/stop", method="POST")
             )
         else:
-            asyncio.run_coroutine_threadsafe(
-                orchestrator.start_dictation(),
-                asyncio.get_event_loop() if hasattr(asyncio, 'get_event_loop') else None
+            urllib.request.urlopen(
+                urllib.request.Request(f"{API_BASE}/api/dictation/start", method="POST")
             )
 
     hotkey_mgr.start(on_hotkey)
