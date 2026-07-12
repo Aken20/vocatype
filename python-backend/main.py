@@ -64,27 +64,54 @@ _ws_clients: list[WebSocket] = []
 
 @app.websocket("/api/ws")
 async def websocket_endpoint(ws: WebSocket):
-    """WebSocket for real-time dictation status updates.
+    """WebSocket for real-time dictation status and control.
 
-    Sends:
-      {"type": "status", "isRecording": true/false, "lastText": "..."}
-      {"type": "health", "lmStudioAvailable": true/false}
+    Client → Server:
+      {"action": "start"}   — start dictation
+      {"action": "stop"}    — stop dictation
+      {"action": "status"}  — get current status
+      {"action": "ping"}    — keepalive
+
+    Server → Client:
+      {"type": "status", "isRecording": bool, "lastText": str, "state": str}
+      {"type": "health", "lmStudioAvailable": bool}
+      {"type": "pong"}
     """
     await ws.accept()
     _ws_clients.append(ws)
+    orchestrator.set_ws_clients(_ws_clients)
     logger.info("WebSocket client connected (%d total)", len(_ws_clients))
 
     try:
+        # Send initial health status
+        from text_cleaner import check_lm_studio_health
+        lm_available = await check_lm_studio_health()
+        await ws.send_json({
+            "type": "health",
+            "lmStudioAvailable": lm_available,
+        })
+
         while True:
             data = await ws.receive_json()
             action = data.get("action", "")
 
-            if action == "ping":
+            if action == "start":
+                await orchestrator.start_dictation()
+            elif action == "stop":
+                await orchestrator.stop_dictation()
+            elif action == "status":
+                await ws.send_json({
+                    "type": "status",
+                    "isRecording": orchestrator.is_dictating,
+                    "state": "recording" if orchestrator.is_dictating else "idle",
+                })
+            elif action == "ping":
                 await ws.send_json({"type": "pong"})
             elif action == "health":
+                lm_available = await check_lm_studio_health()
                 await ws.send_json({
                     "type": "health",
-                    "lmStudioAvailable": False,
+                    "lmStudioAvailable": lm_available,
                 })
 
     except WebSocketDisconnect:
@@ -92,7 +119,9 @@ async def websocket_endpoint(ws: WebSocket):
     except Exception as e:
         logger.warning("WebSocket error: %s", e)
     finally:
-        _ws_clients.remove(ws)
+        if ws in _ws_clients:
+            _ws_clients.remove(ws)
+        orchestrator.set_ws_clients(_ws_clients)
         logger.info("WebSocket client disconnected (%d remaining)", len(_ws_clients))
 
 
