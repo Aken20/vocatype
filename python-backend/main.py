@@ -13,6 +13,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from config import HOST, PORT, WHISPER_MODEL
 
+# Import orchestrator early — used by WebSocket handler
+from orchestrator import orchestrator
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
