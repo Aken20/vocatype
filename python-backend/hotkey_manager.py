@@ -19,9 +19,12 @@ VK_CONTROL = 0x11
 VK_SHIFT = 0x10
 VK_F12 = 0x7B
 
-# Target combo: Ctrl+Shift+. (period) — no browser/app conflicts
-TARGET_MODS = {VK_CONTROL, VK_SHIFT}
-TARGET_KEY = 0xBE  # VK_OEM_PERIOD = . key
+# Modifier sets — include both left AND right variants
+CTRL_KEYS  = {VK_CONTROL, VK_RCONTROL}  # {0x11, 0xA3}
+SHIFT_KEYS = {VK_SHIFT, VK_RSHIFT}      # {0x10, 0xA1}
+
+# Target combo: Ctrl+Shift+. (period)
+TARGET_KEY = 0xBE  # VK_OEM_PERIOD
 
 # Low-level keyboard hook struct
 class KBDLLHOOKSTRUCT(ctypes.Structure):
@@ -129,7 +132,9 @@ class LowLevelHotkey:
 
         if is_down:
             self._pressed_keys.add(vk)
-            if TARGET_MODS.issubset(self._pressed_keys) and vk == TARGET_KEY and self._callback:
+            ctrl  = bool(CTRL_KEYS & self._pressed_keys)
+            shift = bool(SHIFT_KEYS & self._pressed_keys)
+            if ctrl and shift and vk == TARGET_KEY and self._callback:
                 with open(_os.path.join(_os.path.dirname(__file__), "hook_debug.log"), "a") as f:
                     f.write(">>> FIRING CALLBACK\n")
                 threading.Thread(target=self._callback, daemon=True).start()
