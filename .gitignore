@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Rust / Tauri
+target/
+*.rs.bk
+*.pdb
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+dist/
+*.egg
+
+# Whisper models (large files — downloaded at runtime)
+models/*.bin
+models/*.pt
+models/*.onnx
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build output
+tauri-app/src-tauri/target/
+tauri-app/dist/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
