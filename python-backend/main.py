@@ -11,7 +11,7 @@ import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
-from config import HOST, PORT, WHISPER_MODEL
+from config import HOST, PORT, WHISPER_MODEL, WHISPER_DEVICE
 
 # Import orchestrator early — used by WebSocket handler
 from orchestrator import orchestrator
