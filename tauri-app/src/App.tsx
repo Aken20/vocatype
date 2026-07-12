@@ -1,104 +1,106 @@
+import { useCallback } from "react";
 import { useDictationStore } from "./store/dictationStore";
 import { useDictationWebSocket } from "./hooks/useDictationWebSocket";
 
+const API = "http://127.0.0.1:9877";
+
 function App() {
-  useDictationWebSocket();
+  const { ws, sendAction } = useDictationWebSocket();
   const { isRecording, lastTranscription, status, lmStudioAvailable } =
     useDictationStore();
 
+  const toggleDictation = useCallback(async () => {
+    if (isRecording) {
+      sendAction("stop");
+    } else {
+      sendAction("start");
+    }
+  }, [isRecording, sendAction]);
+
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6 select-none">
+    <div className="min-h-screen bg-gray-950 text-white p-6 flex flex-col gap-5 select-none">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3">
         <span className="text-2xl">🎙️</span>
-        <h1 className="text-2xl font-bold tracking-tight">WhisperType</h1>
-        <span className="text-xs px-2 py-0.5 rounded bg-gray-800 text-gray-500 font-mono">
-          v0.1.0
+        <h1 className="text-xl font-bold tracking-tight">WhisperType</h1>
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 font-mono">
+          v0.1
         </span>
       </div>
 
-      {/* Status Card */}
-      <div className="mb-6 p-5 bg-gray-900 rounded-xl border border-gray-800">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-sm text-gray-400">Status</span>
-          <div
-            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
-              isRecording
-                ? "bg-red-500/20 text-red-400 animate-pulse"
-                : status === "transcribing"
-                  ? "bg-yellow-500/20 text-yellow-400"
-                  : "bg-green-500/20 text-green-400"
-            }`}
-          >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isRecording
-                  ? "bg-red-500"
-                  : status === "transcribing"
-                    ? "bg-yellow-500"
-                    : "bg-green-500"
-              }`}
+      {/* Dictation Button */}
+      <button
+        onClick={toggleDictation}
+        className={`w-full py-8 rounded-2xl text-lg font-semibold transition-all duration-200 cursor-pointer border-2 ${
+          isRecording
+            ? "bg-red-600/30 border-red-500 text-red-300 animate-pulse"
+            : status === "transcribing"
+              ? "bg-yellow-600/20 border-yellow-600 text-yellow-300"
+              : "bg-violet-600/20 border-violet-600 text-violet-300 hover:bg-violet-600/30"
+        }`}
+      >
+        {isRecording
+          ? "⏹ Stop Dictation"
+          : status === "transcribing"
+            ? "⏳ Transcribing..."
+            : "🎤 Start Dictation"}
+      </button>
+
+      {/* Audio meter (placeholder) */}
+      {isRecording && (
+        <div className="flex items-end gap-0.5 h-8">
+          {Array.from({ length: 24 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex-1 bg-red-500/50 rounded-t transition-all"
+              style={{
+                height: `${15 + Math.random() * 85}%`,
+                animation: `pulse ${0.3 + Math.random() * 0.5}s ease-in-out infinite alternate`,
+              }}
             />
-            {isRecording
-              ? "Recording..."
-              : status === "transcribing"
-                ? "Transcribing..."
-                : "Ready"}
-          </div>
+          ))}
         </div>
+      )}
 
-        {/* Audio level bar (placeholder) */}
-        {isRecording && (
-          <div className="flex items-end gap-0.5 h-8 mb-3">
-            {Array.from({ length: 20 }).map((_, i) => (
-              <div
-                key={i}
-                className="w-2 bg-red-500/60 rounded-t animate-pulse"
-                style={{
-                  height: `${20 + Math.random() * 80}%`,
-                  animationDelay: `${i * 50}ms`,
-                }}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* LM Studio indicator */}
-        <div className="flex items-center gap-2 text-xs">
+      {/* Status bar */}
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="flex items-center gap-2">
+          <span
+            className={`w-2 h-2 rounded-full ${
+              isRecording ? "bg-red-500" : "bg-green-500"
+            }`}
+          />
+          {isRecording ? "Recording" : "Ready"}
+        </div>
+        <div className="flex items-center gap-1.5">
           <span
             className={`w-1.5 h-1.5 rounded-full ${
               lmStudioAvailable ? "bg-green-500" : "bg-gray-600"
             }`}
           />
-          <span className="text-gray-500">
-            AI Cleanup:{" "}
-            {lmStudioAvailable ? (
-              <span className="text-green-400">Connected (LM Studio)</span>
-            ) : (
-              <span className="text-gray-500">Offline</span>
-            )}
-          </span>
+          {lmStudioAvailable ? "AI Cleanup On" : "AI Cleanup Offline"}
         </div>
       </div>
 
       {/* Last Transcription */}
       {lastTranscription && (
-        <div className="mb-6 p-4 bg-gray-900 rounded-xl border border-gray-800">
-          <p className="text-xs text-gray-500 mb-2 uppercase tracking-wider">
+        <div className="p-4 bg-gray-900 rounded-xl border border-gray-800">
+          <p className="text-[10px] text-gray-500 mb-1 uppercase tracking-wider">
             Last transcription
           </p>
-          <p className="text-gray-200 leading-relaxed">{lastTranscription}</p>
+          <p className="text-gray-200 text-sm leading-relaxed">
+            {lastTranscription}
+          </p>
         </div>
       )}
 
-      {/* Hotkey Hint */}
-      <div className="p-4 bg-gray-900/50 rounded-xl border border-gray-800/50">
-        <p className="text-sm text-gray-500 text-center">
-          Press{" "}
-          <kbd className="px-2 py-0.5 bg-gray-800 rounded text-gray-300 font-mono text-xs border border-gray-700">
+      {/* Hotkey */}
+      <div className="mt-auto pt-4 text-center">
+        <p className="text-xs text-gray-600">
+          Hotkey:{" "}
+          <kbd className="px-1.5 py-0.5 bg-gray-800 rounded text-gray-400 font-mono text-[10px] border border-gray-700">
             Win+Shift+V
-          </kbd>{" "}
-          to start/stop dictation
+          </kbd>
         </p>
       </div>
     </div>

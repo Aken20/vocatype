@@ -51,12 +51,15 @@ app.include_router(dictation_router)
 async def health():
     """Health check endpoint. Frontend polls this on startup."""
     from transcriber import get_model_info
+    from text_cleaner import check_lm_studio_health
+
+    lm_available = await check_lm_studio_health()
 
     return {
         "status": "ok",
         "version": "0.1.0",
         "model": get_model_info(),
-        "lm_studio_available": False,  # checked on startup via text_cleaner
+        "lm_studio_available": lm_available,
     }
 
 

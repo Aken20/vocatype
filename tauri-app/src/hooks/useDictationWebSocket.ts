@@ -8,60 +8,50 @@ export function useDictationWebSocket() {
   const reconnectTimeout = useRef<number | null>(null);
   const store = useDictationStore();
 
+  const sendAction = useCallback((action: string) => {
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ action }));
+    }
+  }, []);
+
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
-    ws.onopen = () => {
-      console.log("WebSocket connected to WhisperType backend");
-    };
+    ws.onopen = () => console.log("WS connected");
 
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         switch (data.type) {
           case "status":
-            if (data.isRecording) {
-              store.setRecording(true);
-            } else {
-              store.setRecording(false);
-              if (data.lastText) {
-                store.setLastTranscription(data.lastText);
-                store.setStatus("done");
-              }
-            }
+            store.setRecording(data.isRecording ?? false);
+            if (data.lastText) store.setLastTranscription(data.lastText);
+            if (data.state) store.setStatus(data.state);
             break;
           case "health":
             store.setLmStudioAvailable(data.lmStudioAvailable ?? false);
             break;
-          case "error":
-            console.error("Backend error:", data.message);
-            break;
         }
-      } catch (e) {
-        console.error("Failed to parse WebSocket message:", e);
-      }
+      } catch {}
     };
 
     ws.onclose = () => {
-      console.log("WebSocket disconnected, reconnecting in 2s...");
       reconnectTimeout.current = window.setTimeout(connect, 2000);
     };
 
-    ws.onerror = () => {
-      ws.close();
-    };
+    ws.onerror = () => ws.close();
   }, [store]);
 
   useEffect(() => {
     connect();
     return () => {
-      if (reconnectTimeout.current !== null) {
-        clearTimeout(reconnectTimeout.current);
-      }
+      if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
       wsRef.current?.close();
     };
   }, [connect]);
+
+  return { ws: wsRef, sendAction };
 }
