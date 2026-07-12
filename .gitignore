@@ -42,3 +42,4 @@ Desktop.ini
 # Logs
 *.log
 logs/
+pill_position.json

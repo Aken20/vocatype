@@ -193,6 +193,10 @@ async def startup():
 
     hotkey_mgr.start(on_hotkey)
 
+    # Start pill overlay automatically
+    from pill_overlay import start_pill
+    start_pill()
+
     # Store for shutdown
     app.state.hotkey_manager = hotkey_mgr
     app.state.orchestrator = orchestrator
@@ -220,6 +224,9 @@ async def shutdown():
 
     if hasattr(app.state, "hotkey_manager"):
         app.state.hotkey_manager.stop()
+
+    from pill_overlay import stop_pill
+    stop_pill()
 
     logger.info("WhisperType backend shut down")
 

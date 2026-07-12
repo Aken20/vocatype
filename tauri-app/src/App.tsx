@@ -106,7 +106,7 @@ function App() {
 
       {/* LLM Cleanup Toggle */}
       <div className="flex items-center justify-between px-3 py-2 bg-gray-900/50 rounded-lg border border-gray-800/30">
-        <span className="text-xs text-gray-400">AI Text Cleanup</span>
+        <span className="text-xs text-gray-400">✨ AI Polish</span>
         <button
           onClick={async () => {
             const newVal = !llmEnabled;
