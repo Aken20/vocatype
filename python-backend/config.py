@@ -17,6 +17,22 @@ WHISPER_COMPUTE_TYPE = os.getenv("WHISPERTYPE_WHISPER_COMPUTE", "float16")
 MODELS_DIR = BASE_DIR / "models"
 MODELS_DIR.mkdir(exist_ok=True)
 
+# Register CUDA DLLs from nvidia pip packages (Windows)
+# Must happen BEFORE any ctranslate2/faster_whisper import
+import os as _os, sys as _sys
+try:
+    _nv = _os.path.join(_os.path.dirname(__file__), ".venv", "Lib", "site-packages", "nvidia")
+    _cublas = _os.path.join(_nv, "cublas", "bin")
+    _nvrtc  = _os.path.join(_nv, "cuda_nvrtc", "bin")
+    if _os.path.isdir(_cublas):
+        _os.add_dll_directory(_cublas)
+        _os.environ["PATH"] = _cublas + _os.pathsep + _os.environ.get("PATH", "")
+    if _os.path.isdir(_nvrtc):
+        _os.add_dll_directory(_nvrtc)
+        _os.environ["PATH"] = _nvrtc + _os.pathsep + _os.environ.get("PATH", "")
+except Exception:
+    pass
+
 # Database
 DB_PATH = BASE_DIR / "whispertype.db"
 
