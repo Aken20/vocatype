@@ -1,6 +1,6 @@
 """WhisperType Backend — FastAPI server.
 
-Press Ctrl+Shift+F12 to dictate. Audio flows through:
+Press Ctrl+Shift+. to dictate. Audio flows through:
   WASAPI mic → faster-whisper (small) → optional LM Studio cleanup → clipboard paste
 """
 import asyncio
@@ -141,7 +141,7 @@ async def startup():
     logger.info("🎙️  WhisperType Backend v0.1.0")
     logger.info("   Model: %s | Device: CPU", WHISPER_MODEL)
     logger.info("   Server: http://%s:%d", HOST, PORT)
-    logger.info("   Hotkey: Ctrl+Shift+F12")
+    logger.info("   Hotkey: Ctrl+Shift+.")
     logger.info("=" * 50)
 
     # Give the orchestrator access to WebSocket clients
@@ -149,7 +149,7 @@ async def startup():
 
     orchestrator.set_ws_clients(_ws_clients)
 
-    # Start global hotkey listener (Ctrl+Shift+F12 → toggle dictation)
+    # Start global hotkey listener (Ctrl+Shift+. → toggle dictation)
     import os as _os
     _debug_log = _os.path.join(_os.path.dirname(__file__), "debug.log")
     with open(_debug_log, "w") as f:
@@ -169,8 +169,8 @@ async def startup():
     API_BASE = f"http://{HOST}:{PORT}"
 
     def on_hotkey():
-        """Called when Ctrl+Shift+F12 is pressed — uses REST API to avoid asyncio thread issues."""
-        logger.info("🔥 HOTKEY PRESSED — Ctrl+Shift+F12 detected!")
+        """Called when Ctrl+Shift+. is pressed — uses REST API to avoid asyncio thread issues."""
+        logger.info("🔥 HOTKEY PRESSED — Ctrl+Shift+. detected!")
         try:
             if orchestrator.is_dictating:
                 logger.info("  → Stopping dictation...")

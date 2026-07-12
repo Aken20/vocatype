@@ -19,9 +19,9 @@ VK_CONTROL = 0x11
 VK_SHIFT = 0x10
 VK_F12 = 0x7B
 
-# Target combo: Ctrl+Shift+F12
+# Target combo: Ctrl+Shift+. (period) — no browser/app conflicts
 TARGET_MODS = {VK_CONTROL, VK_SHIFT}
-TARGET_KEY = VK_F12
+TARGET_KEY = 0xBE  # VK_OEM_PERIOD = . key
 
 # Low-level keyboard hook struct
 class KBDLLHOOKSTRUCT(ctypes.Structure):
@@ -77,8 +77,8 @@ class LowLevelHotkey:
         self._hook_id = user32.SetWindowsHookExW(
             WH_KEYBOARD_LL,
             self._hook_proc,
-            kernel32.GetModuleHandleW(None),
-            0,  # 0 = global hook for low-level hooks
+            0,  # hMod must be NULL for WH_KEYBOARD_LL (low-level hooks ignore it)
+            0,  # 0 = all threads (global)
         )
 
         if not self._hook_id:
@@ -87,7 +87,7 @@ class LowLevelHotkey:
             self._running = False
             return
 
-        logger.info("Low-level keyboard hook installed (Ctrl+Shift+F12)")
+        logger.info("Low-level keyboard hook installed (Ctrl+Shift+.)")
 
         # Run Windows message pump in this thread to keep the hook alive
         msg = wintypes.MSG()
@@ -158,7 +158,7 @@ class HotkeyManager:
 
         self._thread = threading.Thread(target=_run, daemon=True, name="hotkey-thread")
         self._thread.start()
-        logger.info("Hotkey listener started (Ctrl+Shift+F12 via keyboard hook)")
+        logger.info("Hotkey listener started (Ctrl+Shift+. via keyboard hook)")
 
     def stop(self):
         self._hotkey.stop()
