@@ -1,133 +1,167 @@
-"""Global hotkey registration using pywin32.
+"""Global hotkey using low-level keyboard hook (SetWindowsHookEx).
 
-Registers Ctrl+Shift+F12 as a system-wide hotkey. When pressed,
-it toggles dictation on/off — even when WhisperType is in the background.
+Same approach as Voquill's rdev::grab — intercepts all keystrokes at the OS level,
+checks for the target combo, and triggers the callback. No RegisterHotKey conflicts.
 """
 import ctypes
 import logging
 import threading
+from ctypes import wintypes
 from typing import Callable, Optional
-
-import win32con
-import win32gui
 
 logger = logging.getLogger(__name__)
 
-# Hotkey IDs
-HK_TOGGLE_DICTATION = 1
+# Windows constants
+WH_KEYBOARD_LL = 13
+WM_KEYDOWN = 0x0100
+WM_SYSKEYDOWN = 0x0104
+VK_CONTROL = 0x11
+VK_SHIFT = 0x10
+VK_F12 = 0x7B
+
+# Target combo: Ctrl+Shift+F12
+TARGET_MODS = {VK_CONTROL, VK_SHIFT}
+TARGET_KEY = VK_F12
+
+# Low-level keyboard hook struct
+class KBDLLHOOKSTRUCT(ctypes.Structure):
+    _fields_ = [
+        ("vkCode", wintypes.DWORD),
+        ("scanCode", wintypes.DWORD),
+        ("flags", wintypes.DWORD),
+        ("time", wintypes.DWORD),
+        ("dwExtraInfo", ctypes.POINTER(ctypes.c_ulong)),
+    ]
+
+# Callback type
+LowLevelKeyboardProc = ctypes.WINFUNCTYPE(
+    ctypes.c_long, ctypes.c_int, wintypes.WPARAM, ctypes.POINTER(KBDLLHOOKSTRUCT)
+)
+
+# Windows DLLs
+user32 = ctypes.windll.user32
+kernel32 = ctypes.windll.kernel32
 
 
-class HotkeyManager:
-    """Manages system-wide hotkey registration on Windows.
-
-    Creates a hidden message-only window to receive WM_HOTKEY messages.
-    Runs its own thread with a Windows message pump.
+class LowLevelHotkey:
+    """Hotkey via SetWindowsHookEx — no RegisterHotKey conflicts.
 
     Usage:
         def on_toggle():
-            if recording:
-                stop_dictation()
-            else:
-                start_dictation()
+            print("Hotkey pressed!")
 
-        mgr = HotkeyManager()
-        mgr.start(on_toggle)
+        hotkey = LowLevelHotkey()
+        hotkey.start(on_toggle)
         # ... app runs ...
-        mgr.stop()
+        hotkey.stop()
     """
 
     def __init__(self):
-        self._hwnd: Optional[int] = None
+        self._hook_id: Optional[int] = None
         self._callback: Optional[Callable[[], None]] = None
-        self._thread: Optional[threading.Thread] = None
         self._running = False
-        self._registered = False
+        self._pressed_keys: set[int] = set()
+        self._hook_proc = LowLevelKeyboardProc(self._hook_callback)
+        # Prevent GC of the callback
+        self._hook_proc_ref = self._hook_proc
 
     def start(self, callback: Callable[[], None]):
-        """Start listening for the hotkey.
-
-        Args:
-            callback: Called (on a background thread) when the hotkey is pressed.
-        """
+        """Install the low-level keyboard hook."""
         if self._running:
             return
 
         self._callback = callback
         self._running = True
-        self._thread = threading.Thread(target=self._message_loop, daemon=True, name="hotkey-thread")
-        self._thread.start()
-        logger.info("Hotkey listener started (Ctrl+Shift+F12)")
+
+        # Install the hook
+        self._hook_id = user32.SetWindowsHookExW(
+            WH_KEYBOARD_LL,
+            self._hook_proc,
+            kernel32.GetModuleHandleW(None),
+            0,  # 0 = global hook for low-level hooks
+        )
+
+        if not self._hook_id:
+            error = kernel32.GetLastError()
+            logger.error("SetWindowsHookEx failed: error %d", error)
+            self._running = False
+            return
+
+        logger.info("Low-level keyboard hook installed (Ctrl+Shift+F12)")
+
+        # Run Windows message pump in this thread to keep the hook alive
+        msg = wintypes.MSG()
+        while self._running:
+            # PeekMessage instead of GetMessage so we can check self._running
+            if user32.PeekMessageW(ctypes.byref(msg), None, 0, 0, 1):  # PM_REMOVE
+                user32.TranslateMessage(ctypes.byref(msg))
+                user32.DispatchMessageW(ctypes.byref(msg))
 
     def stop(self):
-        """Stop listening and clean up Windows resources."""
+        """Remove the hook and stop the message pump."""
         self._running = False
-        if self._hwnd:
-            win32gui.PostMessage(self._hwnd, win32con.WM_QUIT, 0, 0)
+
+        if self._hook_id:
+            user32.UnhookWindowsHookEx(self._hook_id)
+            self._hook_id = None
+
+        # Post a dummy message to wake up PeekMessage loop
+        user32.PostThreadMessageW(kernel32.GetCurrentThreadId(), 0, 0, 0)
+
+        logger.info("Keyboard hook removed")
+
+    def _hook_callback(self, nCode: int, wParam: wintypes.WPARAM, lParam: ctypes.POINTER(KBDLLHOOKSTRUCT)) -> int:
+        """Called by Windows for every keyboard event."""
+        if nCode < 0:
+            return user32.CallNextHookEx(self._hook_id, nCode, wParam, lParam)
+
+        kb = lParam.contents
+        vk = kb.vkCode
+
+        if wParam in (WM_KEYDOWN, WM_SYSKEYDOWN):
+            self._pressed_keys.add(vk)
+
+            # Check if target combo is pressed
+            mods_pressed = bool(TARGET_MODS & self._pressed_keys)  # at least one mod
+            all_mods_pressed = TARGET_MODS.issubset(self._pressed_keys)
+            target_pressed = TARGET_KEY in self._pressed_keys
+
+            if all_mods_pressed and target_pressed and self._callback:
+                # Fire callback in a new thread to not block the hook
+                threading.Thread(target=self._callback, daemon=True).start()
+                # Clear F12 so we don't re-fire while held
+                self._pressed_keys.discard(TARGET_KEY)
+
+        else:
+            # Key up
+            self._pressed_keys.discard(vk)
+
+        return user32.CallNextHookEx(self._hook_id, nCode, wParam, lParam)
+
+
+class HotkeyManager:
+    """Drop-in replacement for the old RegisterHotKey-based manager.
+
+    Uses LowLevelHotkey internally. Same start/stop API.
+    """
+
+    def __init__(self):
+        self._hotkey = LowLevelHotkey()
+        self._thread: Optional[threading.Thread] = None
+
+    def start(self, callback: Callable[[], None]):
+        if self._thread and self._thread.is_alive():
+            return
+
+        def _run():
+            self._hotkey.start(callback)
+
+        self._thread = threading.Thread(target=_run, daemon=True, name="hotkey-thread")
+        self._thread.start()
+        logger.info("Hotkey listener started (Ctrl+Shift+F12 via keyboard hook)")
+
+    def stop(self):
+        self._hotkey.stop()
         if self._thread:
             self._thread.join(timeout=2.0)
         logger.info("Hotkey listener stopped")
-
-    def _message_loop(self):
-        """Windows message pump — runs on a dedicated thread."""
-        # Register window class
-        wndclass = win32gui.WNDCLASS()
-        wndclass.lpfnWndProc = self._wnd_proc
-        wndclass.lpszClassName = "WhisperTypeHotkey"
-        wndclass.hInstance = win32gui.GetModuleHandle(None)
-
-        try:
-            class_atom = win32gui.RegisterClass(wndclass)
-        except Exception:
-            # Class already registered from a previous run
-            class_atom = None
-
-        # Create hidden message-only window
-        self._hwnd = win32gui.CreateWindow(
-            wndclass.lpszClassName,
-            "WhisperTypeHotkey",
-            0,
-            0, 0, 0, 0,
-            0,  # HWND_MESSAGE (message-only)
-            0,
-            wndclass.hInstance,
-            None,
-        )
-
-        # Register Ctrl+Shift+F12 (virtually never taken)
-        modifiers = win32con.MOD_CONTROL | win32con.MOD_SHIFT
-        try:
-            if win32gui.RegisterHotKey(self._hwnd, HK_TOGGLE_DICTATION, modifiers, win32con.VK_F12):
-                self._registered = True
-                logger.info("Hotkey registered: Ctrl+Shift+F12")
-            else:
-                logger.error("Failed to register Ctrl+Shift+F12 — it may be in use")
-                self._registered = False
-        except Exception as e:
-            logger.error("Hotkey registration failed: %s", e)
-            self._registered = False
-
-        # Message loop
-        while self._running:
-            try:
-                msg = win32gui.GetMessage(None, 0, 0)
-                if msg:
-                    win32gui.TranslateMessage(ctypes.byref(msg))
-                    win32gui.DispatchMessage(ctypes.byref(msg))
-            except Exception:
-                break
-
-        # Cleanup
-        if self._hwnd and self._registered:
-            win32gui.UnregisterHotKey(self._hwnd, HK_TOGGLE_DICTATION)
-        if self._hwnd:
-            win32gui.DestroyWindow(self._hwnd)
-            self._hwnd = None
-
-    def _wnd_proc(self, hwnd, msg, wparam, lparam):
-        """Window procedure — dispatches WM_HOTKEY to our callback."""
-        if msg == win32con.WM_HOTKEY and wparam == HK_TOGGLE_DICTATION:
-            if self._callback:
-                # Run callback in new thread to avoid blocking the message pump
-                threading.Thread(target=self._callback, daemon=True).start()
-            return 0
-        return win32gui.DefWindowProc(hwnd, msg, wparam, lparam)
