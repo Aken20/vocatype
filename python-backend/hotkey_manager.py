@@ -125,22 +125,12 @@ class LowLevelHotkey:
         vk = kb.vkCode
         is_down = wParam in (WM_KEYDOWN, WM_SYSKEYDOWN)
 
-        # File debug — write every key event
-        import os as _os
-        try:
-            with open(_os.path.join(_os.path.dirname(__file__), "hook_debug.log"), "a") as f:
-                f.write(f"vk={vk:#04x} down={is_down} pressed={sorted(self._pressed_keys)}\n")
-        except:
-            pass
-
         if is_down:
             self._pressed_keys.add(vk)
             ctrl  = bool(CTRL_KEYS & self._pressed_keys)
             shift = bool(SHIFT_KEYS & self._pressed_keys)
             if ctrl and shift and vk == TARGET_KEY and self._callback and not self._fired:
                 self._fired = True
-                with open(_os.path.join(_os.path.dirname(__file__), "hook_debug.log"), "a") as f:
-                    f.write(">>> FIRING CALLBACK\n")
                 threading.Thread(target=self._callback, daemon=True).start()
                 self._pressed_keys.discard(TARGET_KEY)
         else:

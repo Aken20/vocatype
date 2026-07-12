@@ -16,8 +16,9 @@ __pycache__/
 *.egg-info/
 *.egg
 
-# ── Models (downloaded at runtime) ────────────────────
+# ── App data ─────────────────────────────────────────
 models/
+vocatype.db
 pill_position.json
 
 # ── Environment ───────────────────────────────────────

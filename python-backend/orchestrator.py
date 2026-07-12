@@ -111,6 +111,15 @@ class DictationOrchestrator:
             # 3. Paste into active application
             inject_text(cleaned_text)
 
+            # Clear clipboard after pasting (privacy — don't leave dictated text)
+            try:
+                import win32clipboard
+                win32clipboard.OpenClipboard()
+                win32clipboard.EmptyClipboard()
+                win32clipboard.CloseClipboard()
+            except Exception:
+                pass
+
             logger.info("✅ Dictation complete: '%s'", cleaned_text[:80])
 
             await self._broadcast({

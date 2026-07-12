@@ -13,7 +13,7 @@
 
 VocaType is a fully-local Windows voice dictation app inspired by [Voquill](https://github.com/voquill/voquill). Press `Ctrl+Shift+.`, speak naturally, and your words appear in any text field — optionally cleaned up by a local AI running in LM Studio.
 
-> **No cloud. No API keys. No internet.** Everything runs on your machine.
+> **No cloud. No API keys required.** Everything runs on your machine. (The Whisper model downloads once on first run.)
 
 ## ✨ Features
 
@@ -37,7 +37,7 @@ Ctrl+Shift+. → WASAPI mic → faster-whisper (small) → optional LM Studio �
 | Layer | Stack |
 |---|---|
 | Desktop Shell | Tauri 2.x (Rust) |
-| Frontend | React 18 + TypeScript + Zustand + Tailwind CSS |
+| Frontend | React 19 + TypeScript + Zustand + Tailwind CSS |
 | Backend | Python 3.11 + FastAPI + WebSocket |
 | Transcription | faster-whisper (CTranslate2) — CPU or CUDA |
 | Audio | sounddevice (WASAPI) — low-latency on Windows |

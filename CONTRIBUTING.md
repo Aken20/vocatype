@@ -4,7 +4,7 @@ Thanks for considering contributing! Here's how to get started.
 
 ## Development Setup
 
-See the [Quick Start](#) in the README for full setup instructions.
+See the [Quick Start](README.md#-quick-start) in the README for full setup instructions.
 
 ### Before submitting
 

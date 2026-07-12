@@ -2,10 +2,8 @@ import { useCallback, useState, useEffect } from "react";
 import { useDictationStore } from "./store/dictationStore";
 import { useDictationWebSocket } from "./hooks/useDictationWebSocket";
 
-const API = "http://127.0.0.1:9877";
-
 function App() {
-  const { ws, sendAction } = useDictationWebSocket();
+  const { sendAction } = useDictationWebSocket();
   const { isRecording, lastTranscription, status, lmStudioAvailable } =
     useDictationStore();
 
