@@ -31,13 +31,8 @@ export function PillOverlay() {
 
   return (
     <div
-      className="flex items-center gap-3 px-4 py-2 rounded-xl select-none"
-      style={{
-        background: "rgba(15, 15, 20, 0.92)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        backdropFilter: "blur(12px)",
-        WebkitAppRegion: "drag" as any,
-      }}
+      className="flex items-center gap-3 px-4 py-2 rounded-xl select-none bg-gray-950 border border-gray-700/50 shadow-lg"
+      style={{ WebkitAppRegion: "drag" as any }}
       data-tauri-drag-region
     >
       {/* Recording indicator */}

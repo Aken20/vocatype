@@ -27,7 +27,6 @@ fn toggle_pill(app: tauri::AppHandle) -> Result<String, String> {
         .decorations(false)
         .always_on_top(true)
         .skip_taskbar(true)
-        .transparent(true)
         .visible_on_all_workspaces(true)
         .build()
         .map_err(|e| e.to_string())?;
