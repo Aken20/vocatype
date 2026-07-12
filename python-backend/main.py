@@ -1,6 +1,6 @@
 """WhisperType Backend — FastAPI server.
 
-Press Win+Shift+V to dictate. Audio flows through:
+Press Ctrl+Alt+D to dictate. Audio flows through:
   WASAPI mic → faster-whisper (small) → optional LM Studio cleanup → clipboard paste
 """
 import asyncio
@@ -141,7 +141,7 @@ async def startup():
     logger.info("🎙️  WhisperType Backend v0.1.0")
     logger.info("   Model: %s | Device: CPU", WHISPER_MODEL)
     logger.info("   Server: http://%s:%d", HOST, PORT)
-    logger.info("   Hotkey: Win+Shift+V")
+    logger.info("   Hotkey: Ctrl+Alt+D")
     logger.info("=" * 50)
 
     # Give the orchestrator access to WebSocket clients
@@ -149,13 +149,13 @@ async def startup():
 
     orchestrator.set_ws_clients(_ws_clients)
 
-    # Start global hotkey listener (Win+Shift+V → toggle dictation)
+    # Start global hotkey listener (Ctrl+Alt+D → toggle dictation)
     from hotkey_manager import HotkeyManager
 
     hotkey_mgr = HotkeyManager()
 
     def on_hotkey():
-        """Called when Win+Shift+V is pressed."""
+        """Called when Ctrl+Alt+D is pressed."""
         if orchestrator.is_dictating:
             # Stop recording — transcription happens in the background
             asyncio.run_coroutine_threadsafe(

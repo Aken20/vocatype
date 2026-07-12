@@ -1,6 +1,6 @@
 """Global hotkey registration using pywin32.
 
-Registers Win+Shift+V as a system-wide hotkey. When pressed,
+Registers Ctrl+Alt+D as a system-wide hotkey. When pressed,
 it toggles dictation on/off — even when WhisperType is in the background.
 """
 import ctypes
@@ -56,7 +56,7 @@ class HotkeyManager:
         self._running = True
         self._thread = threading.Thread(target=self._message_loop, daemon=True, name="hotkey-thread")
         self._thread.start()
-        logger.info("Hotkey listener started (Win+Shift+V)")
+        logger.info("Hotkey listener started (Ctrl+Alt+D)")
 
     def stop(self):
         """Stop listening and clean up Windows resources."""
@@ -93,20 +93,17 @@ class HotkeyManager:
             None,
         )
 
-        # Register Win+Shift+V
-        modifiers = win32con.MOD_WIN | win32con.MOD_SHIFT
+        # Register Ctrl+Alt+D (for Dictate)
+        modifiers = win32con.MOD_CONTROL | win32con.MOD_ALT
         try:
-            if win32gui.RegisterHotKey(self._hwnd, HK_TOGGLE_DICTATION, modifiers, ord("V")):
+            if win32gui.RegisterHotKey(self._hwnd, HK_TOGGLE_DICTATION, modifiers, ord("D")):
                 self._registered = True
-                logger.info("Hotkey registered: Win+Shift+V")
+                logger.info("Hotkey registered: Ctrl+Alt+D")
             else:
-                logger.error(
-                    "Failed to register Win+Shift+V — it may be in use by another app. "
-                    "Try changing the hotkey in config.py"
-                )
+                logger.error("Failed to register Ctrl+Alt+D — it may be in use")
                 self._registered = False
         except Exception as e:
-            logger.error("Hotkey registration failed: %s (another instance may be running)", e)
+            logger.error("Hotkey registration failed: %s", e)
             self._registered = False
 
         # Message loop
