@@ -12,7 +12,7 @@ function App() {
   const [llmEnabled, setLlmEnabled] = useState(true);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:9877/api/settings")
+    fetch("http://127.0.0.1:9877/api/settings/")
       .then(r => r.json())
       .then(d => setLlmEnabled(d.llm_cleanup_enabled))
       .catch(() => {});

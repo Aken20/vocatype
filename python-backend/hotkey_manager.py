@@ -66,6 +66,7 @@ class LowLevelHotkey:
         self._callback: Optional[Callable[[], None]] = None
         self._running = False
         self._pressed_keys: set[int] = set()
+        self._fired = False  # debounce — prevent re-fire from key repeat
         self._hook_proc = LowLevelKeyboardProc(self._hook_callback)
         # Prevent GC of the callback
         self._hook_proc_ref = self._hook_proc
@@ -136,13 +137,17 @@ class LowLevelHotkey:
             self._pressed_keys.add(vk)
             ctrl  = bool(CTRL_KEYS & self._pressed_keys)
             shift = bool(SHIFT_KEYS & self._pressed_keys)
-            if ctrl and shift and vk == TARGET_KEY and self._callback:
+            if ctrl and shift and vk == TARGET_KEY and self._callback and not self._fired:
+                self._fired = True
                 with open(_os.path.join(_os.path.dirname(__file__), "hook_debug.log"), "a") as f:
                     f.write(">>> FIRING CALLBACK\n")
                 threading.Thread(target=self._callback, daemon=True).start()
                 self._pressed_keys.discard(TARGET_KEY)
         else:
             self._pressed_keys.discard(vk)
+            # Reset debounce when target or any modifier is released
+            if vk == TARGET_KEY or vk in CTRL_KEYS or vk in SHIFT_KEYS:
+                self._fired = False
 
         return user32.CallNextHookEx(self._hook_id, nCode, wParam, lParam)
 
