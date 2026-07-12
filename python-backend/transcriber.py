@@ -69,10 +69,14 @@ def transcribe_audio(
     if not audio_samples:
         return ""
 
+    # faster-whisper requires numpy float32 array, not a plain list
+    import numpy as np
+    audio_array = np.array(audio_samples, dtype=np.float32)
+
     model = get_model()
 
     segments, info = model.transcribe(
-        audio_samples,
+        audio_array,
         language=language or None,
         beam_size=5,
         vad_filter=True,  # Voice activity detection — skips silence
