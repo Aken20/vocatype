@@ -117,23 +117,24 @@ class LowLevelHotkey:
 
         kb = lParam.contents
         vk = kb.vkCode
+        is_down = wParam in (WM_KEYDOWN, WM_SYSKEYDOWN)
 
-        if wParam in (WM_KEYDOWN, WM_SYSKEYDOWN):
+        # File debug — write every key event
+        import os as _os
+        try:
+            with open(_os.path.join(_os.path.dirname(__file__), "hook_debug.log"), "a") as f:
+                f.write(f"vk={vk:#04x} down={is_down} pressed={sorted(self._pressed_keys)}\n")
+        except:
+            pass
+
+        if is_down:
             self._pressed_keys.add(vk)
-
-            # Check if target combo is pressed
-            mods_pressed = bool(TARGET_MODS & self._pressed_keys)  # at least one mod
-            all_mods_pressed = TARGET_MODS.issubset(self._pressed_keys)
-            target_pressed = TARGET_KEY in self._pressed_keys
-
-            if all_mods_pressed and target_pressed and self._callback:
-                # Fire callback in a new thread to not block the hook
+            if TARGET_MODS.issubset(self._pressed_keys) and vk == TARGET_KEY and self._callback:
+                with open(_os.path.join(_os.path.dirname(__file__), "hook_debug.log"), "a") as f:
+                    f.write(">>> FIRING CALLBACK\n")
                 threading.Thread(target=self._callback, daemon=True).start()
-                # Clear F12 so we don't re-fire while held
                 self._pressed_keys.discard(TARGET_KEY)
-
         else:
-            # Key up
             self._pressed_keys.discard(vk)
 
         return user32.CallNextHookEx(self._hook_id, nCode, wParam, lParam)
