@@ -21,7 +21,7 @@ fn toggle_pill(app: tauri::AppHandle) -> Result<String, String> {
             label,
             tauri::WebviewUrl::App("/#pill".into()),
         )
-        .title("WhisperType Pill")
+        .title("VocaType Pill")
         .inner_size(280.0, 48.0)
         .resizable(false)
         .decorations(false)

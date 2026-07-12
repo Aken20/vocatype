@@ -1,4 +1,4 @@
-"""WhisperType Backend — FastAPI server.
+"""VocaType Backend — FastAPI server.
 
 Press Ctrl+Shift+. to dictate. Audio flows through:
   WASAPI mic → faster-whisper (small) → optional LM Studio cleanup → clipboard paste
@@ -25,7 +25,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="WhisperType Backend",
+    title="VocaType Backend",
     version="0.1.0",
     description="Local voice dictation engine — audio capture, transcription, text injection",
 )
@@ -142,7 +142,7 @@ async def websocket_endpoint(ws: WebSocket):
 async def startup():
     """Initialize the backend on startup."""
     logger.info("=" * 50)
-    logger.info("🎙️  WhisperType Backend v0.1.0")
+    logger.info("🎙️  VocaType Backend v0.1.0")
     logger.info("   Model: %s | Device: %s", WHISPER_MODEL, WHISPER_DEVICE.upper())
     logger.info("   Server: http://%s:%d", HOST, PORT)
     logger.info("   Hotkey: Ctrl+Shift+.")
@@ -228,7 +228,7 @@ async def shutdown():
     from pill_overlay import stop_pill
     stop_pill()
 
-    logger.info("WhisperType backend shut down")
+    logger.info("VocaType backend shut down")
 
 
 if __name__ == "__main__":

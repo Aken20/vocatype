@@ -31,7 +31,7 @@ function App() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <span className="text-2xl">🎙️</span>
-        <h1 className="text-xl font-bold tracking-tight flex-1">WhisperType</h1>
+        <h1 className="text-xl font-bold tracking-tight flex-1">VocaType</h1>
         <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-500 font-mono">
           v0.1
         </span>

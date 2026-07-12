@@ -1,4 +1,4 @@
-# Contributing to WhisperType
+# Contributing to VocaType
 
 Thanks for considering contributing! Here's how to get started.
 

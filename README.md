@@ -1,4 +1,4 @@
-# 🎙️ WhisperType
+# 🎙️ VocaType
 
 <div align="center">
 
@@ -11,7 +11,7 @@
 
 </div>
 
-WhisperType is a fully-local Windows voice dictation app inspired by [Voquill](https://github.com/voquill/voquill). Press `Ctrl+Shift+.`, speak naturally, and your words appear in any text field — optionally cleaned up by a local AI running in LM Studio.
+VocaType is a fully-local Windows voice dictation app inspired by [Voquill](https://github.com/voquill/voquill). Press `Ctrl+Shift+.`, speak naturally, and your words appear in any text field — optionally cleaned up by a local AI running in LM Studio.
 
 > **No cloud. No API keys. No internet.** Everything runs on your machine.
 
@@ -59,8 +59,8 @@ Ctrl+Shift+. → WASAPI mic → faster-whisper (small) → optional LM Studio �
 
 ```powershell
 # Clone
-git clone https://github.com/Aken20/whispertype.git
-cd whispertype
+git clone https://github.com/Aken20/vocatype.git
+cd vocatype
 
 # Python backend (Terminal 1)
 cd python-backend
@@ -79,7 +79,7 @@ Press `Ctrl+Shift+.` and start dictating. The floating pill appears automaticall
 
 ### GPU Acceleration (CUDA)
 
-WhisperType auto-detects CUDA GPUs. If transcription is slow, install CUDA 12 toolkit:
+VocaType auto-detects CUDA GPUs. If transcription is slow, install CUDA 12 toolkit:
 
 ```powershell
 winget install --id NVIDIA.CUDA -v 12.6
@@ -95,7 +95,7 @@ pip install nvidia-cublas-cu12
 1. Install [LM Studio](https://lmstudio.ai/)
 2. Download `Llama-3.2-3B-Instruct` (Q4_K_M quantization, ~2GB)
 3. Start the local server (default port 1234)
-4. Toggle **✨ AI Polish** in the WhisperType UI
+4. Toggle **✨ AI Polish** in the VocaType UI
 
 The app works fine without LM Studio — just toggles off gracefully.
 
@@ -122,7 +122,7 @@ npm run tauri dev  # watches Rust + Vite
 ### Project Structure
 
 ```
-whispertype/
+vocatype/
 ├── python-backend/         # FastAPI server + transcription engine
 │   ├── main.py             # Entry point, routes, WebSocket
 │   ├── transcriber.py      # faster-whisper wrapper (CPU/CUDA)

@@ -1,4 +1,4 @@
-"""Configuration for WhisperType backend."""
+"""Configuration for VocaType backend."""
 import os
 from pathlib import Path
 
@@ -34,7 +34,7 @@ except Exception:
     pass
 
 # Database
-DB_PATH = BASE_DIR / "whispertype.db"
+DB_PATH = BASE_DIR / "vocatype.db"
 
 # Hotkey
 HOTKEY_MODIFIERS = os.getenv("WHISPERTYPE_HOTKEY_MODIFIERS", "ctrl+shift")

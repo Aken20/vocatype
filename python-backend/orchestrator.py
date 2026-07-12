@@ -1,6 +1,6 @@
 """Orchestrates the full dictation pipeline: record → transcribe → clean → paste.
 
-This is the core state machine of WhisperType. It:
+This is the core state machine of VocaType. It:
   1. Listens for the hotkey (via HotkeyManager)
   2. Toggles recording on/off
   3. On stop: sends audio to Whisper, optionally cleans with LM Studio, pastes
