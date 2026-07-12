@@ -16,7 +16,9 @@ WH_KEYBOARD_LL = 13
 WM_KEYDOWN = 0x0100
 WM_SYSKEYDOWN = 0x0104
 VK_CONTROL = 0x11
+VK_RCONTROL = 0xA3
 VK_SHIFT = 0x10
+VK_RSHIFT = 0xA1
 VK_F12 = 0x7B
 
 # Modifier sets — include both left AND right variants
