@@ -1,45 +1,47 @@
-# Dependencies
+# ── Dependencies ──────────────────────────────────────
 node_modules/
 .pnpm-store/
 
-# Rust / Tauri
+# ── Rust / Tauri ──────────────────────────────────────
 target/
 *.rs.bk
 *.pdb
+src-tauri/target/
 
-# Python
+# ── Python ────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 .venv/
 *.egg-info/
-dist/
 *.egg
 
-# Whisper models (large files — downloaded at runtime)
+# ── Models (downloaded at runtime) ────────────────────
 models/
+pill_position.json
 
-# Environment
+# ── Environment ───────────────────────────────────────
 .env
 .env.local
 .env.*.local
 
-# Build output
-tauri-app/src-tauri/target/
+# ── Build artifacts ───────────────────────────────────
+dist/
 tauri-app/dist/
 
-# OS
+# ── Debug/logs ────────────────────────────────────────
+*.log
+logs/
+debug.log
+hook_debug.log
+
+# ── OS ────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 Desktop.ini
 
-# IDE
-.vscode/settings.json
+# ── IDE ───────────────────────────────────────────────
+.vscode/
 .idea/
 *.swp
 *.swo
-
-# Logs
-*.log
-logs/
-pill_position.json
