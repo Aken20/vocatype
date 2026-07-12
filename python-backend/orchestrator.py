@@ -90,19 +90,23 @@ class DictationOrchestrator:
                 })
                 return ""
 
-            # 2. Optional: Clean with LM Studio (graceful fallback)
-            cleaned_text = raw_text.strip()
-            try:
-                from text_cleaner import clean_transcription
+            # 2. Optional: Clean with LM Studio (respect settings toggle)
+            from routes.settings import is_llm_cleanup_enabled
 
-                cleaned = await clean_transcription(cleaned_text)
-                if cleaned != cleaned_text:
-                    cleaned_text = cleaned
-                    logger.info("Text cleaned via LM Studio")
-            except ImportError:
-                pass  # text_cleaner not yet created — that's Phase 6.5
-            except Exception as e:
-                logger.debug("LM Studio cleanup skipped: %s", e)
+            cleaned_text = raw_text.strip()
+            if is_llm_cleanup_enabled():
+                try:
+                    from text_cleaner import clean_transcription
+                    cleaned = await clean_transcription(cleaned_text)
+                    if cleaned != cleaned_text:
+                        cleaned_text = cleaned
+                        logger.info("Text cleaned via LM Studio")
+                except ImportError:
+                    pass
+                except Exception as e:
+                    logger.debug("LM Studio cleanup skipped: %s", e)
+            else:
+                logger.info("LLM cleanup disabled — using raw transcription")
 
             # 3. Paste into active application
             inject_text(cleaned_text)

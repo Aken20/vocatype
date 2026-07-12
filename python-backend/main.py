@@ -47,6 +47,8 @@ app.include_router(audio_router)
 app.include_router(dictation_router)
 from routes.pill import router as pill_router
 app.include_router(pill_router)
+from routes.settings import router as settings_router
+app.include_router(settings_router)
 
 
 @app.get("/api/health")
@@ -141,7 +143,7 @@ async def startup():
     """Initialize the backend on startup."""
     logger.info("=" * 50)
     logger.info("🎙️  WhisperType Backend v0.1.0")
-    logger.info("   Model: %s | Device: CPU", WHISPER_MODEL)
+    logger.info("   Model: %s | Device: %s", WHISPER_MODEL, WHISPER_DEVICE.upper())
     logger.info("   Server: http://%s:%d", HOST, PORT)
     logger.info("   Hotkey: Ctrl+Shift+.")
     logger.info("=" * 50)

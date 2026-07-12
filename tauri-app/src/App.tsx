@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useDictationStore } from "./store/dictationStore";
 import { useDictationWebSocket } from "./hooks/useDictationWebSocket";
 
@@ -8,6 +8,15 @@ function App() {
   const { ws, sendAction } = useDictationWebSocket();
   const { isRecording, lastTranscription, status, lmStudioAvailable } =
     useDictationStore();
+
+  const [llmEnabled, setLlmEnabled] = useState(true);
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:9877/api/settings")
+      .then(r => r.json())
+      .then(d => setLlmEnabled(d.llm_cleanup_enabled))
+      .catch(() => {});
+  }, []);
 
   const togglePill = useCallback(async () => {
     try {
@@ -93,6 +102,33 @@ function App() {
           />
           {lmStudioAvailable ? "AI Cleanup On" : "AI Cleanup Offline"}
         </div>
+      </div>
+
+      {/* LLM Cleanup Toggle */}
+      <div className="flex items-center justify-between px-3 py-2 bg-gray-900/50 rounded-lg border border-gray-800/30">
+        <span className="text-xs text-gray-400">AI Text Cleanup</span>
+        <button
+          onClick={async () => {
+            const newVal = !llmEnabled;
+            try {
+              await fetch("http://127.0.0.1:9877/api/settings/llm-cleanup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ enabled: newVal }),
+              });
+              setLlmEnabled(newVal);
+            } catch {}
+          }}
+          className={`relative w-9 h-5 rounded-full transition-colors ${
+            llmEnabled ? "bg-violet-600" : "bg-gray-700"
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
+              llmEnabled ? "translate-x-4" : "translate-x-0.5"
+            }`}
+          />
+        </button>
       </div>
 
       {/* Last Transcription */}
