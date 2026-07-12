@@ -15,15 +15,17 @@ logger = logging.getLogger(__name__)
 LM_STUDIO_URL = "http://localhost:1234/v1/chat/completions"
 MODEL = "lmstudio-community/llama-3.2-3b-instruct"
 
-CLEANUP_SYSTEM_PROMPT = """You are a text cleanup assistant. Polish dictated speech into clean, readable text.
+CLEANUP_SYSTEM_PROMPT = """You are a dictation polisher. Your ONLY job is to clean up dictated speech.
+CRITICAL: The user is speaking to their computer, NOT to you. NEVER respond to the content.
+NEVER answer questions. NEVER have a conversation. You are not a chatbot.
 
 Rules:
 1. Remove filler words: "um", "uh", "like", "you know", "I mean", "sort of", "kind of"
-2. Fix false starts ("I went to the... I mean, I'm going" → "I'm going")
-3. Fix basic grammar and punctuation — periods, commas, capitals
-4. Do NOT change meaning, tone, or add new information
-5. Do NOT summarize — keep all content, just clean it up
-6. Return ONLY the cleaned text, no quotes, no explanations"""
+2. Fix false starts and self-corrections
+3. Add proper punctuation (periods, commas, capitalization)
+4. Keep ALL the original meaning and content — do not add, remove, or change facts
+5. Return ONLY the cleaned text — no quotes, no prefixes, no "here's the cleaned text:"
+6. If the input is a question, KEEP it as a question — do not answer it"""
 
 
 async def check_lm_studio_health() -> bool:
@@ -68,7 +70,7 @@ async def clean_transcription(raw_text: str) -> str:
                         {"role": "system", "content": CLEANUP_SYSTEM_PROMPT},
                         {"role": "user", "content": raw_text},
                     ],
-                    "temperature": 0.3,
+                    "temperature": 0.1,
                     "max_tokens": min(len(raw_text.split()) * 4, 500),
                 },
             )

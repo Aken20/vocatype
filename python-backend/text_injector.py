@@ -16,7 +16,7 @@ import win32con
 logger = logging.getLogger(__name__)
 
 
-def paste_via_clipboard(text: str, restore_clipboard: bool = True):
+def paste_via_clipboard(text: str, restore_clipboard: bool = False):
     """Paste text using Ctrl+V (clipboard method).
 
     Works with virtually any Windows application.
