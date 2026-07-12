@@ -159,14 +159,22 @@ async def startup():
 
     def on_hotkey():
         """Called when Ctrl+Alt+D is pressed — uses REST API to avoid asyncio thread issues."""
-        if orchestrator.is_dictating:
-            urllib.request.urlopen(
-                urllib.request.Request(f"{API_BASE}/api/dictation/stop", method="POST")
-            )
-        else:
-            urllib.request.urlopen(
-                urllib.request.Request(f"{API_BASE}/api/dictation/start", method="POST")
-            )
+        logger.info("🔥 HOTKEY PRESSED — Ctrl+Alt+D detected!")
+        try:
+            if orchestrator.is_dictating:
+                logger.info("  → Stopping dictation...")
+                urllib.request.urlopen(
+                    urllib.request.Request(f"{API_BASE}/api/dictation/stop", method="POST")
+                )
+                logger.info("  → Stop request sent")
+            else:
+                logger.info("  → Starting dictation...")
+                urllib.request.urlopen(
+                    urllib.request.Request(f"{API_BASE}/api/dictation/start", method="POST")
+                )
+                logger.info("  → Start request sent")
+        except Exception as e:
+            logger.error("  → Hotkey HTTP request failed: %s", e)
 
     hotkey_mgr.start(on_hotkey)
 
