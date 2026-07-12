@@ -23,3 +23,4 @@ pydantic>=2.0.0
 pydantic-settings>=2.0.0
 nvidia-cublas-cu12==12.9.2.10
 nvidia-cuda-nvrtc-cu12==12.9.86
+websocket-client>=1.8.0

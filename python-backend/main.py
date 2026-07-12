@@ -45,6 +45,8 @@ from routes.dictation import router as dictation_router
 app.include_router(transcription_router)
 app.include_router(audio_router)
 app.include_router(dictation_router)
+from routes.pill import router as pill_router
+app.include_router(pill_router)
 
 
 @app.get("/api/health")

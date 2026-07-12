@@ -11,9 +11,8 @@ function App() {
 
   const togglePill = useCallback(async () => {
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("toggle_pill");
-    } catch { /* Tauri not available (browser dev mode) */ }
+      await fetch("http://127.0.0.1:9877/api/pill/toggle", { method: "POST" });
+    } catch { /* backend not running */ }
   }, []);
 
   const toggleDictation = useCallback(async () => {
