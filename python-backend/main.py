@@ -230,6 +230,10 @@ async def shutdown():
 
     logger.info("VocaType backend shut down")
 
+    # Force exit — tkinter + hotkey threads may block clean shutdown
+    import os as _os
+    _os._exit(0)
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host=HOST, port=PORT, log_level="info")
