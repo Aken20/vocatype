@@ -178,30 +178,43 @@ class PillOverlay:
                 pass
 
     def _ws_listener(self):
-        try:
-            import json as _json
-            from websocket import create_connection
-            ws = create_connection("ws://127.0.0.1:9877/api/ws", timeout=5)
-            while self._running:
+        import json as _json, time as _time
+        from websocket import create_connection
+
+        # Retry initial connection — server may not be up yet
+        ws = None
+        for _ in range(30):  # retry for ~30 seconds
+            if not self._running:
+                return
+            try:
+                ws = create_connection("ws://127.0.0.1:9877/api/ws", timeout=5)
+                break
+            except Exception:
+                _time.sleep(1)
+        
+        if ws is None:
+            return
+
+        while self._running:
+            try:
+                ws.settimeout(2)
+                msg = ws.recv()
+                data = _json.loads(msg)
+                if data.get("type") == "status":
+                    if data.get("isRecording"):
+                        self._status = "recording"
+                    elif data.get("state") == "transcribing":
+                        self._status = "transcribing"
+                    else:
+                        self._status = "idle"
+            except Exception:
+                if not self._running:
+                    break
+                # Try reconnect
                 try:
-                    msg = ws.recv()
-                    data = _json.loads(msg)
-                    if data.get("type") == "status":
-                        if data.get("isRecording"):
-                            self._status = "recording"
-                        elif data.get("state") == "transcribing":
-                            self._status = "transcribing"
-                        else:
-                            self._status = "idle"
+                    ws = create_connection("ws://127.0.0.1:9877/api/ws", timeout=5)
                 except Exception:
-                    if not self._running:
-                        break
-                    try:
-                        ws = create_connection("ws://127.0.0.1:9877/api/ws", timeout=5)
-                    except Exception:
-                        import time; time.sleep(1)
-        except Exception as e:
-            logger.debug("Pill WS: %s", e)
+                    _time.sleep(2)
 
 
 # Global singleton — only ONE instance
