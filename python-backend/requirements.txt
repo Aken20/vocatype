@@ -10,7 +10,7 @@ websockets>=12.0
 sounddevice>=0.4.6
 
 # Windows automation
-pywin32>=306
+pywin32>=312
 
 # Storage
 aiosqlite>=0.20.0
